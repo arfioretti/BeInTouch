@@ -12,6 +12,7 @@ namespace MVC.Controllers
     public class ClienteController : Controller
     {
         // só pra dar commit
+        // vai entrar na master via merge
         public ActionResult ClienteExiste(int id)
         {
             string bRet = "false";
