@@ -13,7 +13,7 @@ namespace MVC.Controllers
         // GET: Cliente
         public ActionResult Index()
         {
-
+            // so testando
 
             IEnumerable<ClienteViewModel> clientes = null;
 
