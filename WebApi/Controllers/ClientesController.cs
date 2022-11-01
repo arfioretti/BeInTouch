@@ -10,20 +10,26 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using WebApi.Context;
 using WebApi.Models.Entity;
+using WebApi.Repository;
 
 namespace WebApi.Controllers
 {
     [RoutePrefix("api/v1/clientes")]
     public class ClientesController : ApiController
     {
-        private BeInTouchContext db = new BeInTouchContext();
+        private readonly IClientesRepository _clientesRepository;
+
+        public ClientesController(IClientesRepository clientesRepository)
+        {
+            _clientesRepository = clientesRepository;
+        }
 
         [HttpGet]
         [Route("")]
         // GET: api/v1/clientes
         public IQueryable<Cliente> GetClientes()
         {
-            return db.Clientes;
+            return _clientesRepository.GetClientes();
         }
 
         [HttpGet]
@@ -32,7 +38,8 @@ namespace WebApi.Controllers
         [ResponseType(typeof(Cliente))]
         public IHttpActionResult GetCliente(int id)
         {
-            Cliente cliente = db.Clientes.Find(id);
+            Cliente cliente = _clientesRepository.GetCliente(id);
+
             if (cliente == null)
             {
                 return NotFound();
@@ -47,6 +54,8 @@ namespace WebApi.Controllers
         [ResponseType(typeof(void))]
         public IHttpActionResult PutCliente(int id, [FromBody]Cliente cliente)
         {
+            bool bRet;
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -57,23 +66,9 @@ namespace WebApi.Controllers
                 return BadRequest();
             }
 
-            db.Entry(cliente).State = EntityState.Modified;
+            bRet = _clientesRepository.PutCliente(id, cliente);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ClienteExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (bRet == false) return BadRequest();
 
             return StatusCode(HttpStatusCode.NoContent);
         }
@@ -84,13 +79,16 @@ namespace WebApi.Controllers
         [ResponseType(typeof(Cliente))]
         public IHttpActionResult PostCliente([FromBody]Cliente cliente)
         {
+            bool bRet;
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            db.Clientes.Add(cliente);
-            db.SaveChanges();
+            bRet = _clientesRepository.PostCliente(cliente);
+
+            if (bRet == false) return BadRequest(ModelState);
 
             return Ok();
         }
@@ -101,23 +99,20 @@ namespace WebApi.Controllers
         [ResponseType(typeof(Cliente))]
         public IHttpActionResult DeleteCliente(int id)
         {
-            Cliente cliente = db.Clientes.Find(id);
-            if (cliente == null)
-            {
-                return NotFound();
-            }
+            bool bRet;
 
-            db.Clientes.Remove(cliente);
-            db.SaveChanges();
+            bRet = _clientesRepository.DeleteCliente(id);
 
-            return Ok(cliente);
+            if (bRet == false) return NotFound();
+
+            return Ok();
         }
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                db.Dispose();
+                _clientesRepository.Dispose(disposing);
             }
             base.Dispose(disposing);
         }
@@ -125,9 +120,9 @@ namespace WebApi.Controllers
         [HttpGet]
         [Route("{id:int}/existe")]
         // GET: api/v1/clientes/5/existe
-        public bool ClienteExists(int id)
+        public bool ClienteExist(int id)
         {
-            return db.Clientes.Count(e => e.Id == id) > 0;
+            return _clientesRepository.ClienteExist(id);
         }
     }
 }
