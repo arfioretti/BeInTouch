@@ -14,6 +14,7 @@ namespace MVC.Controllers
         public ActionResult Index()
         {
 
+// faz de conta que alguem atualizou o prjto, fez um pull e eu quero pegar as modifica;'oes sem merge. faço Fetch
             IEnumerable<ClienteViewModel> clientes = null;
 
             using (var client = new HttpClient())
